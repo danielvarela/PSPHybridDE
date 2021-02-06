@@ -4,6 +4,7 @@
 **/*csv
 **/*png
 **/*gif
+*.tar.gz
 
 
 src/__pycache__
