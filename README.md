@@ -18,9 +18,9 @@ A hybrid version between differential evolution and the fragment replacement tec
 
 This package is only compatible with Python 3.4 and above. To install this package, please follow the instructions below:
 
-* The dependencies.
-** Download and install PyRosetta following the instructions found at http://www.pyrosetta.org/dow
-** Install the package itself:
+* Install the previous descripted dependencies
+* Download and install PyRosetta following the instructions found at http://www.pyrosetta.org/dow
+* Install the package itself:
 
 ```console
 git clone https://github.com/danielvarela/PSPHybridDE.git
