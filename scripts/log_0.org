@@ -1,0 +1,2 @@
+PyRosetta-4 2020 [Rosetta devel 2020.28.post.dev+255.madsjeppesen.shape2.7dba09f64a59899a2055ab768d6921c110d37867 2020-08-11T15:56:21] retrieved from: https://danielvarela@github.com/RosettaCommons/main.git
+(C) Copyright Rosetta Commons Member Institutions. Created in JHU by Sergey Lyskov and PyRosetta Team.

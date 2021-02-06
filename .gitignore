@@ -1,0 +1,10 @@
+
+
+**/*log
+**/*csv
+**/*png
+**/*gif
+
+
+src/__pycache__
+scripts/__pycache__
