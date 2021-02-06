@@ -2,8 +2,17 @@
 # coding: utf-8
 
 import random
+from math import sqrt
 
-from scfxn_fullatom import l2_norm
+from pyrosetta.rosetta.core.scoring import CA_rmsd
+
+
+def l2_norm(reference, current):
+    L2_norm = 0
+    for i, v in enumerate(current):
+        L2_norm += (current[i] - reference[i]) * (current[i] - reference[i])
+    sqrt_L2_norm = sqrt(L2_norm)
+    return sqrt_L2_norm
 
 
 def nearest_neighbor(population, trial, near_option="TRIAL"):
@@ -33,7 +42,6 @@ class GreedySelection:
         gen_scores = [target.score for target in population]
         trial_scores = [ind.score for ind in trials]
         for j in range(0, len(population)):
-            # target_idx = self.nearest_neighbor(population, trials[j].genotype)
             target_idx = j
             score_trial = trial_scores[j]
             score_target = population[target_idx].score
@@ -48,6 +56,27 @@ class GreedySelection:
 
 
 class CrowdingSelection:
+    def __init__(self, scfxn):
+        self.scfxn = scfxn
+        self.crowding_factor = 0.1
+
+    def nearest_neighbor(self, population, trial):
+        distance_values = []
+        trial_pose = self.scfxn.convert_genotype_to_ind_pose(trial)
+        for i in range(0, len(population)):
+            if random.uniform(0, 1) < self.crowding_factor:
+                dst = CA_rmsd(
+                    self.scfxn.convert_genotype_to_ind_pose(population[i].genotype),
+                    trial_pose,
+                )
+                distance_values.append((i, dst))
+        distance_values.sort(key=lambda x: x[1])
+        if len(distance_values) < 1:
+            nearest = int(random.uniform(0, len(population)))
+        else:
+            nearest = distance_values[0][0]
+        return nearest
+
     def apply(self, trials, population):
         gen_scores = [target.score for target in population]
         trial_scores = [ind.score for ind in trials]

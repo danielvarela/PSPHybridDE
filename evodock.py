@@ -82,11 +82,10 @@ def main():
     recombination = config["DE"].getfloat("recombination")
     maxiter = config["DE"].getint("maxiter")
 
-    if config.has_option("DE", "local_search"):
-        local_search_option = config["DE"].get("local_search")
+    if config.has_option("DE", "selection"):
+        selection = config["DE"].get("selection")
     else:
-        logger.info("DANGER: local_search is None")
-        local_search_option = "None"
+        selection = "Greedy"
 
     # --- INIT -----------------------------------------+
     jobid = "./" + config["outputs"].get("output_file")
@@ -122,6 +121,7 @@ def main():
                     recombination,
                     int(maxiter / (len(stages) - 1)),
                     jobid,
+                    selection,
                 )
             else:
                 alg.set_popul_calculator(master_calculator)

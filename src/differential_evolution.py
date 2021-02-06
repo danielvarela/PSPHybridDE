@@ -2,10 +2,6 @@ import logging
 import random
 import time
 
-import matplotlib.pyplot as plt
-import pandas as pd
-
-from scfxn_fullatom import l2_norm
 from selection import (CrowdingSelection, EliteSelection, GreedySelection,
                        nearest_neighbor)
 
@@ -44,7 +40,15 @@ class Individual:
 
 class DifferentialEvolutionAlgorithm:
     def __init__(
-        self, popul_calculator, scheme, popsize, mutate, recombination, maxiter, jobid
+        self,
+        popul_calculator,
+        scheme,
+        popsize,
+        mutate,
+        recombination,
+        maxiter,
+        jobid,
+        selection_opt,
     ):
         self.scheme = scheme
         self.logger = logging.getLogger("evodock.de")
@@ -59,6 +63,11 @@ class DifferentialEvolutionAlgorithm:
         self.bounds = [(-1, 1)] * self.ind_size
         self.file_time_name = self.job_id.replace("evolution", "time")
         self.init_file()
+
+        if selection_opt == "Greedy":
+            self.selection = GreedySelection()
+        if selection_opt == "Crowding":
+            self.selection = CrowdingSelection(self.popul_calculator.cost_func)
 
     def set_popul_calculator(self, popul_calculator):
         self.popul_calculator = popul_calculator
@@ -132,7 +141,8 @@ class DifferentialEvolutionAlgorithm:
 
                 # --- MUTATION (step #3.A) ---------------------+
 
-                # select three random vector index positions [0, self.popsize), not including current vector (j)
+                # select three random vector index positions [0, self.popsize),
+                # not including current vector (j)
                 candidates = list(range(0, self.popsize))
                 candidates.remove(j)
                 random_index = random.sample(candidates, 3)
@@ -141,11 +151,6 @@ class DifferentialEvolutionAlgorithm:
                     x_1 = population[j].genotype
                 if self.scheme == "RANDOM":
                     x_1 = population[random_index[0]].genotype
-                if self.scheme == "NEAR":
-                    nearest = nearest_neighbor(
-                        population, population[j].genotype, "PARENT"
-                    )
-                    x_1 = population[nearest].genotype
                 if self.scheme == "BEST":
                     x_1 = population[gen_scores.index(min(gen_scores))].genotype
 
@@ -178,7 +183,7 @@ class DifferentialEvolutionAlgorithm:
             trial_inds = self.popul_calculator.run(trials)
             self.popul_calculator.cost_func.print_information(trial_inds, True)
 
-            population, gen_scores, trial_scores = GreedySelection().apply(
+            population, gen_scores, trial_scores = self.selection.apply(
                 trial_inds, population
             )
 
