@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.spatial.transform import Rotation as R
 
 IP_ADDRESS = "10.8.0.6"
 
@@ -36,15 +35,3 @@ def random_individual(max_value=180):
             # ind.append(0)
             ind.append(np.random.random_sample() * 1)
     return ind
-
-
-def get_rotation_euler(flexible_jump):
-    rot_matrix = R.from_matrix(np.asarray(flexible_jump.get_rotation()))
-    vec = rot_matrix.as_euler("xyz", degrees=True)
-    return vec
-
-
-def get_position_info(dock_pose):
-    flexible_jump = dock_pose.jump(1)
-    euler_vec = get_rotation_euler(flexible_jump)
-    return list(euler_vec) + list(flexible_jump.get_translation())

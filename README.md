@@ -25,7 +25,7 @@ This package is only compatible with Python 3.4 and above. To install this packa
 ```console
 git clone https://github.com/danielvarela/PSPHybridDE.git
 cd PSPHybridDE
-pip install -e .
+pip install -r requirements.txt
 ```
 
 # Basic Usage

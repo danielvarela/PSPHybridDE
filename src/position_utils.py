@@ -14,7 +14,6 @@ from pyrosetta.rosetta.protocols.moves import PyMOLMover
 from pyrosetta.rosetta.protocols.rigid import RigidBodySpinMover
 from pyrosetta.rosetta.protocols.toolbox.rigid_body import \
     create_euler_rotation
-from scipy.spatial import distance
 
 from reader import StructureReader
 

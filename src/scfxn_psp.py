@@ -24,8 +24,6 @@ class PSPFitnessFunction:
         self.native_pose = native_pose
         self.logger.setLevel(logging.INFO)
         # self.pymover = PyMOLMover(address=IP_ADDRESS, port=65000, max_packet_size=1400)
-        # self.converter = GlobalGenotypeConverter(input_pose)
-        # self.converter = LocalGenotypeConverter(input_pose)
         self.scfxn_rosetta = self.get_score_function(stage)
         self.dock_pose = Pose()
         self.dock_pose.assign(input_pose)
