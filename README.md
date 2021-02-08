@@ -10,7 +10,6 @@ A hybrid version between differential evolution and the fragment replacement tec
 * matplotlib==3.3.3
 * numpy==1.19.4
 * pandas==1.1.4
-* scipy==1.5.4
 * seaborn==0.11.0
 * rosetta==0.3
 
