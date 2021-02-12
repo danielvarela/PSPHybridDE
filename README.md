@@ -12,6 +12,7 @@ A hybrid version between differential evolution and the fragment replacement tec
 * pandas==1.1.4
 * seaborn==0.11.0
 * rosetta==0.3
+* mpi4py==3.0.3
 
 # Installation
 
@@ -66,6 +67,14 @@ information about the DE parameters can be found at https://en.wikipedia.org/wik
 ```console
 python evodock configs/sample_psp.ini
 ```
+
+run with mpi4py
+
+```console
+mpirun -np 2 python evodock configs/sample_psp.ini
+```
+
+
 
 # Protein Structure Prediction
 
