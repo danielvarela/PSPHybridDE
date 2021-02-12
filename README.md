@@ -65,13 +65,13 @@ information about the DE parameters can be found at https://en.wikipedia.org/wik
 2. Run with the algorithm with the desired configuration
 
 ```console
-python evodock configs/sample_psp.ini
+python evodock.py configs/sample_psp.ini
 ```
 
 run with mpi4py
 
 ```console
-mpirun -np 2 python evodock configs/sample_psp.ini
+mpirun -np 2 python evodock.py configs/sample_psp.ini
 ```
 
 
