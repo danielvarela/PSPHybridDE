@@ -2,13 +2,11 @@ import copy
 import time
 
 import numpy as np
+from mpi4py import MPI
 
 from differential_evolution import Individual
 
-# from mpi4py import MPI
-
-
-# comm = MPI.COMM_WORLD
+comm = MPI.COMM_WORLD
 # rank = comm.Get_rank()
 # size = comm.Get_size()
 
@@ -67,7 +65,7 @@ class MasterProcess:
         chunks = [lst[i : i + size] for i in range(0, len(lst), size)]
         return chunks
 
-    def run(self, popul):
+    def run(self, popul, with_slide=False):
         list_popul = popul
         req = []
         ind_per_process = int(len(list_popul) / self.size)
@@ -113,7 +111,7 @@ class MasterProcess:
 
     def terminate(self):
         terminate_function = 3
-        for d in range(1, self.size):
+        for d in range(1, comm.Get_size()):
             comm.send(terminate_function, dest=d)
 
 
@@ -128,7 +126,7 @@ class Worker:
         while True:
             action = comm.recv(source=0)
             if action == 3:
-                break
+                exit()
             data = comm.recv(source=0)
             # process data here
             convert_pop = [np_to_ind(x) for x in data]
@@ -140,4 +138,4 @@ class Worker:
                 mpi_pop.append(IndividualMPI(idx, scored_ind).convert_to_np())
 
             send_data = np.array(mpi_pop, dtype=np.float64)
-            comm.Send(send_data, dest=0, tag=rank)
+            comm.Send(send_data, dest=0, tag=self.rank)

@@ -7,19 +7,20 @@ import os
 import sys
 
 import numpy as np
-# from mpi4py import MPI
+from mpi4py import MPI
 from pyrosetta import init
 
 from differential_evolution import DifferentialEvolutionAlgorithm as DE
 from init_random_positions import start_input_poses
 from local_search import AbinitioBuilder
+# from single_process import SingleMasterProcess as MasterProcess
+from mpi_utils import MasterProcess, Worker
 from population import ScorePopulation
 from scfxn_psp import PSPFitnessFunction
-from single_process import SingleMasterProcess as MasterProcess
 
-# comm = MPI.COMM_WORLD
-# rank = comm.Get_rank()
-# size = comm.Get_size()
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
 
 
 MAIN_PATH = os.getcwd()
@@ -92,26 +93,28 @@ def main():
     native_input = config["inputs"].get("pose_input")
     native_pose, init_state_pose = start_input_poses(pose_input, native_input)
 
-    rank = 0
-    size = 1
+    # rank = 0
+    # size = 1
     # -- TESTING PURPOUSES ----
     stages = ["stage1", "stage2", "stage3", "stage4"]
 
     for stage in stages:
         abinitio_builder = AbinitioBuilder(config, stage)
         scfxn = PSPFitnessFunction(stage, reference_input, native_pose, init_state_pose)
-
-        logger.info(
-            " init_state pose {:.2f}".format(scfxn.scfxn_rosetta.score(init_state_pose))
-        )
-
         score_popul = ScorePopulation(scfxn, jobid, abinitio_builder, config)
-        master_calculator = MasterProcess(size, score_popul)
 
         if rank == 0:
+            master_calculator = MasterProcess(size, score_popul)
             logger.info("==============================")
             logger.info(" init the params ")
             logger.info(" starts stage {}".format(stage))
+            logger.info(
+                " init_state pose {:.2f}".format(
+                    scfxn.scfxn_rosetta.score(init_state_pose)
+                )
+            )
+            logger.info("==============================")
+
             if stage == "stage1":
                 alg = DE(
                     master_calculator,
@@ -140,8 +143,8 @@ def main():
                 init_population = high_res_population
             if stage == "stage4":
                 master_calculator.terminate()
-        # else:
-        #     Worker(rank, size, score_popul).run()
+        else:
+            Worker(rank, size, score_popul).run()
 
 
 if __name__ == "__main__":
