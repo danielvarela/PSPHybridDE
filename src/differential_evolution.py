@@ -94,12 +94,18 @@ class DifferentialEvolutionAlgorithm:
         population = self.popul_calculator.run(popul, with_slide)
 
         # scores = [p.score for p in population]
+        # print(scores)
         # rmsds = [p.rmsd for p in population]
         # df = pd.DataFrame({"score": scores, "rmsd": rmsds})
 
         # df.plot.scatter(x="rmsd", y="score")
         # plt.savefig("init_population.png")
 
+        return population
+
+    def evaluate_population(self, popul):
+        with_slide = False
+        population = self.popul_calculator.run(popul, with_slide)
         return population
 
     def init_file(self):
@@ -187,6 +193,9 @@ class DifferentialEvolutionAlgorithm:
                 trial_inds, population
             )
 
+            if any([ind.score == 0 for ind in population]):
+                print("hay score == 0")
+                exit()
             # --- SCORE KEEPING --------------------------------+
             # self.logger.info("POPUL SCORES : ", gen_scores)
             gen_avg = sum(gen_scores) / self.popsize  # current generation avg. fitness

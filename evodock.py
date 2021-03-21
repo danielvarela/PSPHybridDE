@@ -96,7 +96,7 @@ def main():
     # rank = 0
     # size = 1
     # -- TESTING PURPOUSES ----
-    stages = ["stage1", "stage2", "stage3", "stage4"]
+    stages = ["stage1", "stage4"]
 
     for stage in stages:
         abinitio_builder = AbinitioBuilder(config, stage)
@@ -104,7 +104,7 @@ def main():
         score_popul = ScorePopulation(scfxn, jobid, abinitio_builder, config)
 
         if rank == 0:
-            master_calculator = MasterProcess(size, score_popul)
+            master_calculator = MasterProcess(size, score_popul, stage)
             logger.info("==============================")
             logger.info(" init the params ")
             logger.info(" starts stage {}".format(stage))
@@ -126,25 +126,25 @@ def main():
                     jobid,
                     selection,
                 )
+                init_population = alg.init_population()
             else:
                 alg.set_popul_calculator(master_calculator)
+                init_population = alg.evaluate_population(init_population)
 
             # --- RUN -----------------------------------------+
             logger.info("==============================")
-            logger.info(" starts high res evolution")
+            logger.info(" start evolution algorithm stage ")
             logger.info(
                 " native pose {:.2f}".format(scfxn.scfxn_rosetta.score(native_pose))
             )
-            init_population = alg.init_population()
-            high_res_population = master_calculator.run(init_population)
+
+            # high_res_population = master_calculator.run(init_population)
             if stage != "stage1":
-                init_population = alg.main(high_res_population)
-            else:
-                init_population = high_res_population
+                init_population = alg.main(init_population)
             if stage == "stage4":
                 master_calculator.terminate()
         else:
-            Worker(rank, size, score_popul).run()
+            Worker(rank, size, config).run()
 
 
 if __name__ == "__main__":
