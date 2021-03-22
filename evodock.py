@@ -96,7 +96,7 @@ def main():
     # rank = 0
     # size = 1
     # -- TESTING PURPOUSES ----
-    stages = ["stage1", "stage4"]
+    stages = ["stage1", "stage2", "stage3", "stage4"]
 
     for stage in stages:
         abinitio_builder = AbinitioBuilder(config, stage)
