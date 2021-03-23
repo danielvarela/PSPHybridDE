@@ -7,6 +7,7 @@ from pyrosetta.rosetta.core.fragment import ConstantLengthFragSet
 from pyrosetta.rosetta.core.pose import read_psipred_ss2_file
 from pyrosetta.rosetta.core.scoring import CA_rmsd
 from pyrosetta.rosetta.protocols.abinitio import ClassicAbinitio
+from pyrosetta.rosetta.protocols.simple_moves import ShearMover, SmallMover
 
 from differential_evolution import Individual
 
@@ -59,6 +60,24 @@ class AbinitioBuilder:
             abinitio.bSkipStage4_ = False
         abinitio.set_cycles(self.cycles)
         return abinitio
+
+
+class MCMminimization:
+    def __init__(self, scfxn):
+        self.pose = scfxn.native_pose
+        kT = 1.0
+        n_moves = 50
+        movemap = MoveMap()
+        movemap.set_bb(True)
+        self.small_mover = SmallMover(movemap, kT, n_moves)
+        self.small_mover.scorefxn(scfxn.scfxn_rosetta)
+        self.shear_mover = ShearMover(movemap, kT, n_moves)
+        self.shear_mover.scorefxn(scfxn.scfxn_rosetta)
+
+    def apply(self, pose):
+        self.small_mover.apply(pose)
+        self.shear_mover.apply(pose)
+        return pose
 
 
 class LocalSearchPopulation:
