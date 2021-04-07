@@ -2,7 +2,8 @@
 # coding: utf-8
 
 
-from pyrosetta import Pose
+from pyrosetta import Pose, pose_from_file
+from pyrosetta.rosetta.protocols.simple_moves import SwitchResidueTypeSetMover
 
 from perturbation_step import PerturbationStepMover, conversion_movers
 from reader import StructureReader
@@ -23,8 +24,17 @@ pdb_archive = {
 
 
 def start_input_poses(pose_input, native_input):
-    pose = StructureReader().get_from_file(pose_input)
+    pose = Pose()
+    print("pose input {} ".format(pose_input))
+    pose_from_file(pose, pose_input)
+    native_pose = Pose()
+    pose_from_file(native_pose, native_input)
+
     native_pose = StructureReader().get_from_file(native_input)
+
+    to_centroid = SwitchResidueTypeSetMover("centroid")
+    to_centroid.apply(pose)
+    to_centroid.apply(native_pose)
 
     # prot = [p for p in pdb_archive.keys() if p in pose_input][0]
     # native_pose = StructureReader().get_from_file(pdb_archive[prot])

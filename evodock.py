@@ -33,6 +33,8 @@ def init_options(reference_input):
     opts = [
         "-mute all",
         "-ignore_unrecognized_res",
+        "-score::weights score3",
+        "-in:file:centroid_input",
         "-nonideal true",
         "-corrections:restore_talaris_behavior",
         "-abinitio::rg_reweight 0.5",

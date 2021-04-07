@@ -125,6 +125,9 @@ class LocalSearchPopulation:
         return score
 
     def process_individual(self, ind, local_search=False):
+        # dofs = self.scfxn.get_dofs(self.scfxn.native_pose)
+        # native_genotype = self.scfxn.convert_positions_to_genotype(dofs)
+        # ind = native_genotype
         pose = self.scfxn.convert_genotype_to_ind_pose(ind)
         before = self.energy_score(pose)
         if self.local_stage != "None":

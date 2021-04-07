@@ -92,6 +92,9 @@ class PSPFitnessFunction:
         return gen
         # return convert_range(genotype)
 
+    def apply_dofs_to_pose(self, genotype):
+        return self.convert_genotype_to_ind_pose(genotype)
+
     def convert_genotype_to_ind_pose(self, genotype):
         dofs = self.convert_genotype_to_positions(genotype)
         phis = dofs[: int(len(dofs) / 2)]
