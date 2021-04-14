@@ -7,16 +7,19 @@ from init_random_positions import start_input_poses
 from scfxn_psp import PSPFitnessFunction
 
 
-def init_options():
+def init_options(ss2):
     opts = [
         "-mute all",
         "-in:file:centroid_input",
         "-ignore_unrecognized_res",
         "-nonideal true",
+        "-out:pdb",
+        "-use_filters true",
         "-corrections:restore_talaris_behavior",
         "-abinitio::rg_reweight 0.5",
         "-abinitio::rsd_wt_helix 0.5",
         "-abinitio::rsd_wt_loop 0.5",
+        "-psipred_ss2 {}".format(ss2),
         "-score:weights score3",
         "-abinitio::relax false",
         "-output_secondary_structure true",
@@ -26,7 +29,8 @@ def init_options():
 
 
 def main():
-    init(init_options())
+    ss2_file = "./input_files/info_1c8c/vf_1c8cA.psipred_ss2"
+    init(init_options(ss2_file))
     pose_input = "./input_files/1c8ca_mejor_score.pdb"
 
     native_pose, init_state_pose = start_input_poses(pose_input, pose_input)
