@@ -17,23 +17,13 @@ def l2_norm(reference, current):
 
 def nearest_neighbor(population, trial, near_option="TRIAL"):
     distance_values = []
-    for i in range(0, len(population)):
-        if near_option == "TRIAL":
-            if random.uniform(0, 1) < 0.1:
-                dst = l2_norm(population[i].genotype[3:], trial[3:])
-                distance_values.append((i, dst))
-        else:
-            dst = l2_norm(population[i].genotype, trial)
-            distance_values.append((i, dst))
+    factor = 0.1
+    rnd_index = random.sample(range(1, 100), int(len(population) * factor))
+    for i in rnd_index:
+        dst = l2_norm(population[i].genotype, trial)
+        distance_values.append((i, dst))
     distance_values.sort(key=lambda x: x[1])
-    if near_option == "TRIAL":
-        if len(distance_values) < 1:
-            nearest = int(random.uniform(0, len(population)))
-        else:
-            nearest = distance_values[0][0]
-    else:
-        prune = [x for x in distance_values if x[1] != 0]
-        nearest = prune[0][0]
+    nearest = distance_values[0][0]
     return nearest
 
 
@@ -62,26 +52,22 @@ class CrowdingSelection:
 
     def nearest_neighbor(self, population, trial):
         distance_values = []
-        trial_pose = self.scfxn.convert_genotype_to_ind_pose(trial)
-        for i in range(0, len(population)):
-            if random.uniform(0, 1) < self.crowding_factor:
-                dst = CA_rmsd(
-                    self.scfxn.convert_genotype_to_ind_pose(population[i].genotype),
-                    trial_pose,
-                )
-                distance_values.append((i, dst))
+        trial_pose = self.scfxn.convert_ind_to_pose(trial)
+        rnd_index = random.sample(
+            range(1, len(population)), int(len(population) * self.crowding_factor)
+        )
+        for i in rnd_index:
+            dst = CA_rmsd(self.scfxn.convert_ind_to_pose(population[i]), trial_pose,)
+            distance_values.append((i, dst))
         distance_values.sort(key=lambda x: x[1])
-        if len(distance_values) < 1:
-            nearest = int(random.uniform(0, len(population)))
-        else:
-            nearest = distance_values[0][0]
+        nearest = distance_values[0][0]
         return nearest
 
     def apply(self, trials, population):
         gen_scores = [target.score for target in population]
         trial_scores = [ind.score for ind in trials]
         for j in range(0, len(population)):
-            target_idx = nearest_neighbor(population, trials[j].genotype)
+            target_idx = self.nearest_neighbor(population, trials[j])
             score_trial = trial_scores[j]
             score_target = population[target_idx].score
 

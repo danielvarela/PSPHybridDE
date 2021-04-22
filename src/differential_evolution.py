@@ -27,12 +27,12 @@ def ensure_bounds(vec, bounds):
 
 
 class Individual:
-    def __init__(self, genotype, score, rmsd=1000, i_sc=1000, irms=1000):
+    def __init__(self, genotype, score, rmsd=1000, omegas=[], ss=[]):
         self.genotype = genotype
         self.score = score
         self.rmsd = rmsd
-        self.i_sc = i_sc
-        self.irms = irms
+        self.omegas = omegas
+        self.ss = ss
 
 
 # --- MAIN ---------------------------------------------------------------------+
@@ -78,20 +78,15 @@ class DifferentialEvolutionAlgorithm:
             popsize = self.popsize
         self.logger.info(" init population")
         population = []
-        popul = []
+        native_omega = self.popul_calculator.cost_func.scfxn.get_native_omegas()
+        native_ss = self.popul_calculator.cost_func.scfxn.get_native_ss()
         for i in range(0, popsize):
             indv = []
             for j in range(len(self.bounds)):
                 indv.append(random.uniform(self.bounds[j][0], self.bounds[j][1]))
-            popul.append(indv)
-            population.append(Individual(indv, 0, 1000))
+            population.append(Individual(indv, 0, 1000, native_omega, native_ss))
 
-        # popul_gen = [ind.genotype for ind in population]
-        # popul_scores = self.popul_calculator.cost_func.apply(popul_gen)
-
-        # self.popul_calculator.cost_func.pymol_visualization(population)
-        with_slide = False
-        population = self.popul_calculator.run(popul, with_slide)
+        population = self.popul_calculator.run(population, False)
 
         # scores = [p.score for p in population]
         # print(scores)
@@ -140,7 +135,18 @@ class DifferentialEvolutionAlgorithm:
 
             # file_object = open(outdir + "evolution_example.txt", "a")
             file_object.write("GENERATION: \t" + str(i) + "\t")
+
+            # before_sc = [ind.score for ind in population]
+            if (i % 10) == 0:
+                population = self.popul_calculator.run(population)
             gen_scores = [ind.score for ind in population]
+            # for idx in range(len(before_sc)):
+            #     if (abs(before_sc[idx]) - abs(gen_scores[idx])) < -0.02:
+            #         print(idx)
+            #         print("problem with frags")
+            #         print("bf {} af {} ".format(before_sc[idx], gen_scores[idx]))
+            #         print(population[idx].genotype)
+            #         exit()
             # cycle through each individual in the population
             trials = []
             for j in range(0, self.popsize):
@@ -168,10 +174,12 @@ class DifferentialEvolutionAlgorithm:
                 x_diff = [x_2_i - x_3_i for x_2_i, x_3_i in zip(x_2, x_3)]
 
                 # multiply x_diff by the mutation factor (F) and add to x_1
+
                 v_donor = [
                     x_1_i + self.mutate * x_diff_i
                     for x_1_i, x_diff_i in zip(x_1, x_diff)
                 ]
+
                 v_donor = ensure_bounds(v_donor, self.bounds)
 
                 # --- RECOMBINATION (step #3.B) ----------------+
@@ -183,7 +191,11 @@ class DifferentialEvolutionAlgorithm:
                         v_trial.append(v_donor[k])
                     else:
                         v_trial.append(x_t[k])
-                trials.append(v_trial)
+
+                trial_ind = Individual(
+                    v_trial, 0, 1000, population[j].omegas, population[j].ss
+                )
+                trials.append(trial_ind)
 
             # --- SELECTION (step #3.C) -------------+
             trial_inds = self.popul_calculator.run(trials)

@@ -10,13 +10,13 @@ import numpy as np
 from mpi4py import MPI
 from pyrosetta import init
 
-from differential_evolution import DifferentialEvolutionAlgorithm as DE
-from init_random_positions import start_input_poses
-from local_search import AbinitioBuilder
+from src.differential_evolution import DifferentialEvolutionAlgorithm as DE
+from src.init_random_positions import start_input_poses
+from src.local_search import AbinitioBuilder
 # from single_process import SingleMasterProcess as MasterProcess
-from mpi_utils import MasterProcess, Worker
-from population import ScorePopulation
-from scfxn_psp import PSPFitnessFunction
+from src.mpi_utils import MasterProcess, Worker
+from src.population import ScorePopulation
+from src.scfxn_psp import PSPFitnessFunction
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()

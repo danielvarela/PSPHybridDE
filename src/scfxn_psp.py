@@ -7,6 +7,7 @@ import numpy as np
 from pyrosetta import Pose, create_score_function
 from pyrosetta.rosetta.core.scoring import CA_rmsd
 
+from differential_evolution import Individual
 from utils import convert_range
 
 
@@ -41,6 +42,18 @@ class PSPFitnessFunction:
         if stage == "None":
             scfxn = create_score_function("score3")
         return scfxn
+
+    def get_native_ss(self):
+        ss = [
+            self.native_pose.secstruct(i) for i in range(1, len(self.native_pose) + 1)
+        ]
+        return ss
+
+    def get_native_omegas(self):
+        omegas = [
+            self.native_pose.omega(i) for i in range(1, len(self.native_pose) + 1)
+        ]
+        return omegas
 
     def get_dofs(self, pose):
         phis = [pose.phi(i) for i in range(1, len(pose) + 1)]
@@ -93,10 +106,13 @@ class PSPFitnessFunction:
         # return convert_range(genotype)
 
     def apply_dofs_to_pose(self, genotype):
-        return self.convert_genotype_to_ind_pose(genotype)
+        ind = Individual(
+            genotype, 0, 1000, self.get_native_omegas(), self.get_native_ss()
+        )
+        return self.convert_ind_to_pose(ind)
 
-    def convert_genotype_to_ind_pose(self, genotype):
-        dofs = self.convert_genotype_to_positions(genotype)
+    def convert_ind_to_pose(self, ind):
+        dofs = self.convert_genotype_to_positions(ind.genotype)
         phis = dofs[: int(len(dofs) / 2)]
         psis = dofs[int(len(dofs) / 2) :]
         ind_pose = Pose()
@@ -104,6 +120,8 @@ class PSPFitnessFunction:
         for i in range(1, len(phis) + 1):
             ind_pose.set_phi(i, phis[i - 1])
             ind_pose.set_psi(i, psis[i - 1])
+            ind_pose.set_omega(i, ind.omegas[i - 1])
+            ind_pose.set_secstruct(i, ind.ss[i - 1])
 
         # now is time to score the join_pose
         return ind_pose

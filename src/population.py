@@ -20,7 +20,6 @@ class ScorePopulation:
         jobid_folder = "/".join([x for x in jobid.split("/")[:-1]])
         os.makedirs("./" + jobid_folder, exist_ok=True)
         self.log_best = jobid.replace("evolution", "best")
-        self.log_interface = jobid.replace("evolution", "interface")
         self.log_popul = jobid.replace("evolution", "popul")
         self.log_trials = jobid.replace("evolution", "trials")
         self.local_search = LocalSearchPopulation(scfxn, config, abinitio_builder)
@@ -30,8 +29,6 @@ class ScorePopulation:
             file_object.write("#{}\n".format(jobid))
         with open(self.log_popul, "w") as file_object:
             file_object.write("#{}\n".format(jobid))
-        with open(self.log_interface, "w") as file_object:
-            file_object.write("#{}\n".format(jobid))
 
     def score(self, popul):
         score_popul = []
@@ -39,6 +36,9 @@ class ScorePopulation:
             score = self.scfxn.score(ind.SixD_vector)
             score_popul.append(IndividualZD(ind.SixD_vector, score, ind.ZD))
         return score_popul
+
+    def convert_ind_to_pose(self, ind):
+        return self.scfxn.convert_ind_to_pose(ind)
 
     def convert_genotype(self, genotype):
         return self.scfxn.convert_genotype_to_positions(genotype)
@@ -108,23 +108,12 @@ class ScorePopulation:
     def print_popul_info(self, popul, destiny, trial_popul=False):
         popul_dst = [ind.score for ind in popul]
         popul_rmsd = [ind.rmsd for ind in popul]
-        popul_interface = [ind.i_sc for ind in popul]
-        popul_irmsd = [ind.irms for ind in popul]
 
         with open(destiny, "a") as file_object:
             popul_dst_str = ",".join(["{:.2f}".format(i) for i in popul_dst])
             popul_rmsd_str = ",".join(["{:.2f}".format(i) for i in popul_rmsd])
             file_object.write("{}\n".format(popul_dst_str))
             file_object.write("{}\n".format(popul_rmsd_str))
-
-        if trial_popul is False:
-            with open(self.log_interface, "a") as file_object:
-                popul_interface_str = ",".join(
-                    ["{:.2f}".format(i) for i in popul_interface]
-                )
-                popul_irmsd_str = ",".join(["{:.2f}".format(i) for i in popul_irmsd])
-                file_object.write("{}\n".format(popul_interface_str))
-                file_object.write("{}\n".format(popul_irmsd_str))
 
     def print_information(self, popul, trial_popul=False):
         if trial_popul is False:

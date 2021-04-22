@@ -19,39 +19,81 @@ class IndividualMPI:
     def __init__(self, idx, ind):
         self.idx = idx
         if type(ind) is list:
+            len_ind = int(len(ind) / 2)
             self.genotype = ind
             self.score = 1000
             self.rmsd = 0
-            self.i_sc = 0
-            self.irms = 0
+            self.omegas = [0 for f in range(len(len_ind))]
+            self.ss = ["L" for f in range(len(len_ind))]
         else:
             self.genotype = ind.genotype
             self.score = ind.score
             self.rmsd = ind.rmsd
-            self.i_sc = ind.i_sc
-            self.irms = ind.irms
+            self.omegas = ind.omegas
+            self.ss = ind.ss
 
     def convert_to_np(self):
         a = self.genotype
+        a.append(-10000)
         a.append(self.score)
+        a.append(-20000)
         a.append(self.rmsd)
-        a.append(self.i_sc)
-        a.append(self.irms)
-        a.append(self.idx)
-        a = np.array(a)
+        a.append(-30000)
+        a = np.concatenate((a, np.array(self.omegas)), axis=0)
+        a = np.concatenate((a, np.array([-40000])), axis=0)
+        a = np.concatenate((a, np.array(convert_ss_to_code(self.ss))), axis=0)
+        a = np.concatenate((a, np.array([-50000])), axis=0)
+        a = np.concatenate((a, np.array([-self.idx])), axis=0)
+        a = np.ravel(a)
         return a
 
     def convert_to_ind(self):
-        return Individual(self.genotype, self.score, self.rmsd, self.i_sc, self.irms)
+        return Individual(self.genotype, self.score, self.rmsd, self.omegas, self.ss)
+
+
+def convert_code_to_ss(code):
+    ss = []
+    code = [int(round(c)) for c in code]
+    for c in code:
+        if c == 0:
+            ss.append("L")
+        if c == 1:
+            ss.append("H")
+        if c == 2:
+            ss.append("E")
+    return ss
+
+
+def convert_ss_to_code(ss):
+    code = []
+    for s in ss:
+        if s == "L":
+            code.append(0)
+        if s == "H":
+            code.append(1)
+        if s == "E":
+            code.append(2)
+    return code
 
 
 def np_to_ind(a):
     a = list(a)
-    gen_len = len(a) - 5
-    ind = Individual(
-        a[:gen_len], a[gen_len], a[gen_len + 1], a[gen_len + 2], a[gen_len + 3]
-    )
-    idx = int(round(a[gen_len + 4]))
+    genotype_idx = a.index(-10000)
+    score_idx = a.index(-20000)
+    rmsd_idx = a.index(-30000)
+    omegas_idx = a.index(-40000)
+    ss_idx = a.index(-50000)
+
+    genotype = a[:genotype_idx]
+    score = a[score_idx - 1]
+    rmsd = a[rmsd_idx - 1]
+    omegas = a[rmsd_idx + 1 : omegas_idx]
+    ss = a[omegas_idx + 1 : ss_idx]
+    ss = convert_code_to_ss(ss)
+
+    ind = Individual(genotype, score, rmsd, omegas, ss)
+
+    idx = int(round(a[-1]))
     return (idx, ind)
 
 
@@ -90,7 +132,7 @@ class MasterProcess:
         mpi_pop = []
         for idx, ind in convert_pop:
             scored_ind, before, after = self.cost_func.local_search.process_individual(
-                ind.genotype
+                ind
             )
             mpi_pop.append(IndividualMPI(idx, scored_ind).convert_to_np())
 
@@ -158,7 +200,7 @@ class Worker:
                     scored_ind,
                     before,
                     after,
-                ) = self.cost_func.local_search.process_individual(ind.genotype)
+                ) = self.cost_func.local_search.process_individual(ind)
                 mpi_pop.append(IndividualMPI(idx, scored_ind).convert_to_np())
 
             send_data = np.array(mpi_pop, dtype=np.float64)

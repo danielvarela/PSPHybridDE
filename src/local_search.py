@@ -19,7 +19,11 @@ class AbinitioBuilder:
             local_search_option = config["DE"].get("local_search")
         else:
             local_search_option = "None"
-        self.cycles = 0.01
+        # self.cycles = 0.01
+        if config.has_option("DE", "cycles"):
+            self.cycles = config["DE"].get("cycles")
+        else:
+            self.cycles = 0.01
         self.local_stage = local_search_option
         short_frag_filename = config["inputs"].get("frag3_input")
         long_frag_filename = config["inputs"].get("frag9_input")
@@ -125,19 +129,24 @@ class LocalSearchPopulation:
         return score
 
     def process_individual(self, ind, local_search=False):
-        # dofs = self.scfxn.get_dofs(self.scfxn.native_pose)
-        # native_genotype = self.scfxn.convert_positions_to_genotype(dofs)
-        # ind = native_genotype
-        pose = self.scfxn.convert_genotype_to_ind_pose(ind)
+        pose = self.scfxn.convert_ind_to_pose(ind)
+        backup = Pose()
+        backup.assign(pose)
         before = self.energy_score(pose)
         if self.local_stage != "None":
             self.abinitio.apply(pose)
+
             after = self.energy_score(pose)
         else:
             after = before
+
+        if after > before:
+            pose.assign(backup)
+            after = before
+
         rmsd = self.scfxn.get_rmsd(pose)
-        interface = 0
-        irms = 0
+        omegas = [pose.omega(i) for i in range(1, len(pose) + 1)]
+        ss = [pose.secstruct(i) for i in range(1, len(pose) + 1)]
         genotype = self.scfxn.convert_positions_to_genotype(self.scfxn.get_dofs(pose))
-        result_individual = Individual(genotype, after, rmsd, interface, irms)
+        result_individual = Individual(genotype, after, rmsd, omegas, ss)
         return result_individual, before, after
