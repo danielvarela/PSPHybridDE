@@ -159,12 +159,15 @@ class DifferentialEvolutionAlgorithm:
                 candidates.remove(j)
                 random_index = random.sample(candidates, 3)
 
+                best_index = gen_scores.index(min(gen_scores))
                 if self.scheme == "CURRENT":
                     x_1 = population[j].genotype
                 if self.scheme == "RANDOM":
                     x_1 = population[random_index[0]].genotype
+                    x_1_idx = random_index[0]
                 if self.scheme == "BEST":
-                    x_1 = population[gen_scores.index(min(gen_scores))].genotype
+                    x_1 = population[best_index].genotype
+                    x_1_idx = best_index
 
                 x_2 = population[random_index[1]].genotype
                 x_3 = population[random_index[2]].genotype
@@ -193,7 +196,11 @@ class DifferentialEvolutionAlgorithm:
                         v_trial.append(x_t[k])
 
                 trial_ind = Individual(
-                    v_trial, 0, 1000, population[j].omegas, population[j].ss
+                    v_trial,
+                    0,
+                    1000,
+                    population[x_1_idx].omegas,
+                    population[x_1_idx].ss,
                 )
                 trials.append(trial_ind)
 
