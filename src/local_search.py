@@ -21,7 +21,7 @@ class AbinitioBuilder:
             local_search_option = "None"
         # self.cycles = 0.01
         if config.has_option("DE", "cycles"):
-            self.cycles = config["DE"].get("cycles")
+            self.cycles = float(config["DE"].get("cycles"))
         else:
             self.cycles = 0.01
         self.local_stage = local_search_option
