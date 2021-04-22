@@ -7,10 +7,34 @@ from pyrosetta.rosetta.core.fragment import ConstantLengthFragSet
 from pyrosetta.rosetta.core.pose import read_psipred_ss2_file
 from pyrosetta.rosetta.core.scoring import CA_rmsd
 from pyrosetta.rosetta.protocols.abinitio import ClassicAbinitio
+from pyrosetta.rosetta.protocols.membrane import get_secstruct
 from pyrosetta.rosetta.protocols.minimization_packing import MinMover
 from pyrosetta.rosetta.protocols.simple_moves import ShearMover, SmallMover
 
 from differential_evolution import Individual
+
+
+def transform_ss(code):
+    if code == "C":
+        return "L"
+    if code == "E":
+        return "E"
+    if code == "H":
+        return "H"
+
+
+def get_ss_from_file(file_ss):
+    with open(file_ss, "r") as f:
+        lines = [l.strip() for l in f.readlines()[2:] if len(l) > 0]
+        codes = [transform_ss(l.split(" ")[2]) for l in lines]
+    return codes
+
+
+def get_ss(pose):
+    ss = []
+    for i in range(1, pose.total_residue() + 1):
+        ss.append(pose.secstruct(i))
+    return ss
 
 
 class AbinitioBuilder:
@@ -25,6 +49,7 @@ class AbinitioBuilder:
         else:
             self.cycles = 0.01
         self.local_stage = local_search_option
+
         short_frag_filename = config["inputs"].get("frag3_input")
         long_frag_filename = config["inputs"].get("frag9_input")
         self.native = Pose()
@@ -35,9 +60,15 @@ class AbinitioBuilder:
         self.fragset_short = ConstantLengthFragSet(3, short_frag_filename)
         ss2_file = config["inputs"].get("ss2_input")
         read_psipred_ss2_file(self.native, ss2_file)
+        self.ss2_struct = get_ss_from_file(ss2_file)
         self.movemap = MoveMap()
         self.movemap.set_bb(True)
         self.abinitio = self.set_stage(local_search_option)
+
+    def set_ss(self, pose):
+        for i in range(1, pose.total_residue() + 1):
+            pose.set_secstruct(i, self.ss2_struct[i - 1])
+        return pose
 
     def init_abinitio(self):
         abinitio = ClassicAbinitio(self.fragset_short, self.fragset_long, self.movemap)
@@ -135,7 +166,7 @@ class LocalSearchPopulation:
         before = self.energy_score(pose)
         if self.local_stage != "None":
             self.abinitio.apply(pose)
-
+            pose = self.abinitio_builder.set_ss(pose)
             after = self.energy_score(pose)
         else:
             after = before
