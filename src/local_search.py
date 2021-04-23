@@ -94,7 +94,10 @@ class AbinitioBuilder:
             abinitio.bSkipStage3_ = False
         if stage == "stage4":
             abinitio.bSkipStage4_ = False
-        abinitio.set_cycles(self.cycles)
+        if stage == "stage1":
+            abinitio.set_cycles(1)
+        else:
+            abinitio.set_cycles(self.cycles)
         return abinitio
 
 
